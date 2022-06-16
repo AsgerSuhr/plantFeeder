@@ -1,0 +1,6 @@
+https://www.youtube.com/watch?v=37KlzYhJaQs&ab_channel=BrianLough
+https://microcontrollerslab.com/esp8266-pinout-reference-gpio-pins/
+https://www.esp8266.com/viewtopic.php?f=13&t=6505 - image of adapter board for esp12f, very rudementary
+https://www.youtube.com/watch?v=1Z2kSx1YNiA&ab_channel=SigmaProjection - how to create a pcb board with kicad
+https://www.welectron.com/Waveshare-19677-Raspberry-Pi-Pico-CC - pico specs
+https://www.waveshare.com/product/raspberry-pi/boards-kits/raspberry-pi-pico-cat/pico-esp8266.htm - waveshare version of pico wifi addon
