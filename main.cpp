@@ -7,12 +7,14 @@ int main(int, char**) {
     
     gpio_init(led_pin);
     gpio_set_dir(led_pin, GPIO_OUT);
+    gpio_init(relay_pin);
+    gpio_set_dir(relay_pin, GPIO_OUT);
 
-    while (true) {
+    for (int i=0; i<2; i++) {
 
-        gpio_put(led_pin, true);
+        gpio_put(relay_pin, false);
         sleep_ms(1000);
-        gpio_put(led_pin, false);
+        gpio_put(relay_pin, true);
         sleep_ms(1000);
     }
 }
