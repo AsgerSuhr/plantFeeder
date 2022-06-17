@@ -1,5 +1,6 @@
 #include <iostream>
 #include "pico/stdlib.h"
+#include "ESP8266WiFi.h"
 
 int main(int, char**) {
     const uint led_pin = 25;
