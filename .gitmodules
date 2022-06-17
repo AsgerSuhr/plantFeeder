@@ -1,0 +1,3 @@
+[submodule "lib/ESP8266wifi"]
+	path = lib/ESP8266wifi
+	url = https://github.com/ekstrand/ESP8266wifi.git
