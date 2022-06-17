@@ -1,3 +1,0 @@
-[submodule "lib/--force"]
-	path = lib/--force
-	url = https://github.com/ekstrand/ESP8266wifi.git
