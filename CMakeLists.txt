@@ -23,8 +23,11 @@ pico_set_program_version(${PROJECT_NAME} "0.1")
 
 pico_add_extra_outputs(${PROJECT_NAME})
 
+add_subdirectory(lib)
+
 target_link_libraries(${PROJECT_NAME}
     pico_stdlib
+    lib
 )
 
 # Enable usb output, disable uart output
