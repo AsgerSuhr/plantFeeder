@@ -1,18 +1,65 @@
 from machine import UART
-import time
+import time, _thread, re
 from machine import Pin
 import utime as time
 from utils import *
 
-class Esp8266():
-    def __init__(self, SSID, PSSW):
-        self.uart = UART(0,115200)
-        writeLog('', 'w', filename='setup')
-        self.SSID = SSID 
-        self.PSSW = PSSW
-        self.LED_pico = Pin(25, Pin.OUT)
+class UartCom():
+    def __init__(self,  uart_id=0, baud_rate=115200):
+        self.uart = UART(uart_id, baud_rate)
+        self.uart_id = uart_id
+        self.baud_rate = baud_rate
+        
+    def uartSerialRxMonitor(self) -> str:
+        '''Monitors the response over UART'''
+        recv=bytes()
+        while self.uart.any()>0:
+            recv+=self.uart.read(1)
+        try:
+            res=recv.decode('utf-8')
+        except:
+            print('Error deccoding, continuing...')
+            return 'ERROR'
+        return res
 
-    def blink(self, amount=1, delay=0.5):
+    def uartSend(self, command:str, delay:int=1) -> str:
+        '''Communicates via UART, and returns the response'''
+        self.uart.write(command+'\r\n')
+        time.sleep(delay)
+        res=self.uartSerialRxMonitor()
+        return res
+
+class Client():
+    def __init__(self, client_id, data, parentESP) -> None:
+        self.esp = parentESP
+        self.id = client_id
+        self.data = data
+        print('Client connected')
+        print(self.data)
+    
+    def send(self, http_data:str) -> None:
+        self.esp.uartSend(f'AT+CIPSEND={self.id},{str(len(http_data))}', delay=1)
+        self.esp.uartSend(http_data, delay=1)
+        
+    def close(self) -> None:
+        self.esp.uartSend(f'AT+CIPCLOSE={self.id}', delay=4)
+        self.esp.client = None
+        print('client closed')
+    
+    def GETrequest(self):
+        '''returns [GET, request, HTTP protocol]'''
+        return self.data[0].split(' ')
+
+class Esp8266(UartCom):
+    def __init__(self, uart_id=0, baud_rate=115200, led=25) -> None:
+        super().__init__(uart_id, baud_rate)
+        self.LED_pico = Pin(led, Pin.OUT)
+        #self.uart = UART(uart_id, baud_rate)
+        self.client = None
+        #self.uart_id = uart_id
+        #self.baud_rate = baud_rate
+        
+    def blink(self, amount=1, delay=0.5) -> None:
         '''blinks the LED on the pico'''
         for i in range(amount):
             self.LED_pico.value(1)
@@ -20,7 +67,7 @@ class Esp8266():
             self.LED_pico.value(0)
             time.sleep(delay)
             
-    def setMode(self, mode):
+    def setMode(self, mode:str) -> None:
         '''Sets the esp device WiFi connection mode'''
         if mode == 'NULL':
             mode = '0'
@@ -30,18 +77,24 @@ class Esp8266():
             mode = '2'
         elif mode == 'SoftAP+Station':
             mode = '3'
+            self.uartSend(f'AT+CWMODE={mode}', delay=2)
+            self.uartSend(f'AT+CWSAP="pos_softAP","",1,0,3', delay=2)
+            return
 
-        res = self.uartSend(f'AT+CWMODE={mode}', delay=2)
-        print(res)
-        writeLog(res, 'a', filename='setup')
+        self.uartSend(f'AT+CWMODE={mode}', delay=2)
     
-    def WiFiConnect(self):
+    def WiFiConnect(self, ssid:str, pwd:str) -> None:
         '''connects to the wifi'''
-        res = self.uartSend(f'AT+CWJAP="{self.SSID}","{self.PSSW}"', delay = 10)
-        print(res)
-        writeLog(res, 'a', filename='setup')
+        self.SSID = ssid 
+        self.PSSW = pwd
+        if self.SSID in self.uartSend('AT+CWJAP?'):
+            self.uartSend(f'AT+CIFSR', delay = 1)
+            return 
+        else:
+            self.uartSend(f'AT+CWJAP="{self.SSID}","{self.PSSW}"', delay = 10)
+            self.uartSend(f'AT+CIFSR', delay = 1)
     
-    def enableMultipleConnections(self, enable=True):
+    def enableMultipleConnections(self, enable=True) -> None:
         '''enable multiple connections to the pico'''
         if enable:
             #enable multi connection mode
@@ -51,9 +104,6 @@ class Esp8266():
             #disable multi connection mode
             res = self.uartSend('AT+CIPMUX=0', delay=1)
             self.blink(amount=1)
-
-        print(res)
-        writeLog(res, 'a', filename='setup')
 
     def postHTTP(self, message, ip_adress, port):
     
@@ -83,28 +133,48 @@ class Esp8266():
         res = self.uartSend('AT+CIPCLOSE=0', delay=4)
         print(res)
         writeLog(res, 'a', filename='HttpPostLog')
-        
-    def server(self):
+
+    def clientHandler(self) -> None:
+        while True:
+            if self.uart.any():
+                res = self.uart.read()
+                res = res.decode('utf-8')
+                #res = self.uartSerialRxMonitor()
+                print(res)
+                # Client connects
+                if '+IPD' in res:
+                    self.blink()
+                    data = res.split('+IPD,')[-1]
+                    client_id, data = data.split(',', 1)
+                    data = data.split('\r\n')
+                    self.client = Client(client_id, data, self)                
+    
+    def clientConnecting(self):
+        if self.client:
+            return self.client
+        else:
+            return None
+
+    def server(self, port:int) -> None:
         self.enableMultipleConnections()
-        res = self.uartSend(f'AT+CIPSERVER=1,8080')
-        print(res)
+        res = self.uartSend(f'AT+CIPSERVER=1,{port}', delay=1)
+        _thread.start_new_thread(self.clientHandler, ())
         
-        
-        
-    def uartSerialRxMonitor(self, command:str) -> str:
-        '''Monitors the response over UART'''
+'''
+    def uartSerialRxMonitor(self) -> str:
         recv=bytes()
         while self.uart.any()>0:
             recv+=self.uart.read(1)
-        res=recv.decode('utf-8')
-        #erase_len=len(command)+5
-        #res = res[erase_len:]
+        try:
+            res=recv.decode('utf-8')
+        except:
+            print('Error deccoding, continuing...')
+            return 'ERROR'
         return res
 
     def uartSend(self, command:str, delay:int=1) -> str:
-        '''Communicates via UART, and returns the response'''
-        send=command
-        self.uart.write(send+'\r\n')
+        self.uart.write(command+'\r\n')
         time.sleep(delay)
-        res=self.uartSerialRxMonitor(send)
+        res=self.uartSerialRxMonitor()
         return res
+        '''
