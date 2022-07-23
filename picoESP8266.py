@@ -4,30 +4,6 @@ from machine import Pin
 import utime as time
 from utils import *
 
-class UartCom():
-    def __init__(self,  uart_id=0, baud_rate=115200):
-        self.uart = UART(uart_id, baud_rate)
-        self.uart_id = uart_id
-        self.baud_rate = baud_rate
-        
-    def uartSerialRxMonitor(self) -> str:
-        '''Monitors the response over UART'''
-        recv=bytes()
-        while self.uart.any()>0:
-            recv+=self.uart.read(1)
-        try:
-            res=recv.decode('utf-8')
-        except:
-            print('Error deccoding, continuing...')
-            return 'ERROR'
-        return res
-
-    def uartSend(self, command:str, delay:int=1) -> str:
-        '''Communicates via UART, and returns the response'''
-        self.uart.write(command+'\r\n')
-        time.sleep(delay)
-        res=self.uartSerialRxMonitor()
-        return res
 
 class Client():
     def __init__(self, client_id, data, parentESP) -> None:
@@ -50,14 +26,20 @@ class Client():
         '''returns [GET, request, HTTP protocol]'''
         return self.data[0].split(' ')
 
-class Esp8266(UartCom):
+class Esp8266():
     def __init__(self, uart_id=0, baud_rate=115200, led=25) -> None:
-        super().__init__(uart_id, baud_rate)
+        #super().__init__(uart_id, baud_rate)
         self.LED_pico = Pin(led, Pin.OUT)
-        #self.uart = UART(uart_id, baud_rate)
+        self.uart = UART(uart_id, baud_rate)
         self.client = None
-        #self.uart_id = uart_id
-        #self.baud_rate = baud_rate
+        self.uart_id = uart_id
+        self.baud_rate = baud_rate
+        
+    def route(self, *args):
+        def wrapper(*args):
+            print('start')
+            f()
+            print('ended')
         
     def blink(self, amount=1, delay=0.5) -> None:
         '''blinks the LED on the pico'''
@@ -112,7 +94,6 @@ class Esp8266(UartCom):
         
         # Establishing TCP connection
         res = self.uartSend(f'AT+CIPSTART=0,"TCP",{ip_adress},{port}', delay=4)
-        print(res)
         writeLog(res, 'a', filename='HttpPostLog')
 
         # Create HTTP POST request and send it to the server
@@ -120,18 +101,15 @@ class Esp8266(UartCom):
 
         # Tell the esp8266 we want to send data through the TCP connection. 0 is the ID of the connection that we established earlier
         res = self.uartSend('AT+CIPSEND=0,' + str(len(val)), delay=5)
-        print(res)
         writeLog(res, 'a', filename='HttpPostLog')
 
         # Now we give the esp8266 the data
         res = self.uartSend(val, delay=10)
-        print(res)
         writeLog(res)
         self.blink(10, delay=0.1)
 
         # We try and close the connection
         res = self.uartSend('AT+CIPCLOSE=0', delay=4)
-        print(res)
         writeLog(res, 'a', filename='HttpPostLog')
 
     def clientHandler(self) -> None:
@@ -140,7 +118,6 @@ class Esp8266(UartCom):
                 res = self.uart.read()
                 res = res.decode('utf-8')
                 #res = self.uartSerialRxMonitor()
-                print(res)
                 # Client connects
                 if '+IPD' in res:
                     self.blink()
@@ -160,7 +137,6 @@ class Esp8266(UartCom):
         res = self.uartSend(f'AT+CIPSERVER=1,{port}', delay=1)
         _thread.start_new_thread(self.clientHandler, ())
         
-'''
     def uartSerialRxMonitor(self) -> str:
         recv=bytes()
         while self.uart.any()>0:
@@ -177,4 +153,3 @@ class Esp8266(UartCom):
         time.sleep(delay)
         res=self.uartSerialRxMonitor()
         return res
-        '''
