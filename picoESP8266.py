@@ -34,13 +34,17 @@ class Esp8266():
         self.client = None
         self.uart_id = uart_id
         self.baud_rate = baud_rate
+        self.pages = {}
+        self.ip = ''
         
-    def route(self, *args):
-        def wrapper(*args):
-            print('start')
-            f()
-            print('ended')
+    def route(self, *args, **kwargs):
         
+        def wrapper(func):
+            print(args, kwargs)
+            self.pages[args[0]] = [func, kwargs['method']]
+    
+        return wrapper
+    
     def blink(self, amount=1, delay=0.5) -> None:
         '''blinks the LED on the pico'''
         for i in range(amount):
@@ -48,6 +52,14 @@ class Esp8266():
             time.sleep(delay)
             self.LED_pico.value(0)
             time.sleep(delay)
+            
+    def getIP(self):
+        '''returns ip address of esp8266'''
+        res = self.uartSend(f'AT+CIFSR', delay = 1)
+        res = res.split('\n')
+        self.ip, self.mac = res[1].split('"')[1], res[2].split('"')[1]
+        return res
+        
             
     def setMode(self, mode:str) -> None:
         '''Sets the esp device WiFi connection mode'''
@@ -70,11 +82,12 @@ class Esp8266():
         self.SSID = ssid 
         self.PSSW = pwd
         if self.SSID in self.uartSend('AT+CWJAP?'):
-            self.uartSend(f'AT+CIFSR', delay = 1)
+            self.getIP()
             return 
         else:
             self.uartSend(f'AT+CWJAP="{self.SSID}","{self.PSSW}"', delay = 10)
-            self.uartSend(f'AT+CIFSR', delay = 1)
+            self.getIP()
+            
     
     def enableMultipleConnections(self, enable=True) -> None:
         '''enable multiple connections to the pico'''
@@ -117,14 +130,14 @@ class Esp8266():
             if self.uart.any():
                 res = self.uart.read()
                 res = res.decode('utf-8')
-                #res = self.uartSerialRxMonitor()
                 # Client connects
                 if '+IPD' in res:
                     self.blink()
                     data = res.split('+IPD,')[-1]
                     client_id, data = data.split(',', 1)
                     data = data.split('\r\n')
-                    self.client = Client(client_id, data, self)                
+                    self.client = Client(client_id, data, self)
+                        
     
     def clientConnecting(self):
         if self.client:
@@ -152,4 +165,5 @@ class Esp8266():
         self.uart.write(command+'\r\n')
         time.sleep(delay)
         res=self.uartSerialRxMonitor()
+        #print(res)
         return res

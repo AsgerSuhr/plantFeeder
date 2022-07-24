@@ -4,46 +4,61 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <style>
-        h1 {text-align: center;}
-        .pumpDiv {
-            text-align: center;
-        }
+        div {background-color:powderblue; max-width: 300px; margin:0 auto; border-radius:16px}
+        h1 {text-align: center;font-family: Arial, Helvetica, sans-serif;}
+        h2 {font-family: Arial, Helvetica, sans-serif;}
+        label {font-family: Arial, Helvetica, sans-serif; font-weight:bold;}
+        .pumpDiv {text-align: center;}
+        .button-pump {border-radius:8px; 
+                    background-color:rgb(100,200,100); 
+                    border-color:rgb(60,150,60); 
+                    box-shadow:none;
+                    border-width:2px;
+                    border-style:solid;
+                    color:white;
+                    padding: 5px 16px;
+                    font-size: 16px;
+                    font-weight:bold;
+                    font-family: Arial, Helvetica, sans-serif;
+                    margin:8px}
+        .button-pump:hover {background-color:rgb(60,150,60);border-color:rgb(60,150,60)}
+        .button-pump:active {transform: scale(0.95);}
     </style>
     <title>Plant Feeder</title>
     <link rel="icon" type="image/x-icon" href="icon.ico">
 </head>
-<body>
+<body style="background-color:rgb(220,250,255)">
     <h1>Plant Feeder</h1>
     <div class="pumpDiv">
         <h2>Pump 1</h2>
         <form action="/get">
             <label for="pump_01_ml">Amount of water to pump</label> <br>
-            input1: <input type="number" id="pump_01_ml" name="pump 1 ml" min="0" max="100" value="0"> <label for="pump_01_ml">ml</label> <br>
-            <button type="submit">Pump me</button>
+            <input type="number" id="pump_01_ml" name="pump 1 ml" min="0" max="500" value="0"> <label for="pump_01_ml">ml</label> <br>
+            <button type="submit" class="button-pump">Pump me</button>
         </form>
     </div>
     <div class="pumpDiv">
         <h2>Pump 2</h2>
         <form action="/get">
             <label for="pump_02_ml">Amount of water to pump</label> <br>
-            input2: <input type="number" id="pump_02_ml" name="pump 2 ml" min="0" max="100" value="0"> <label for="pump_02_ml">ml</label> <br>
-            <button type="submit">Pump me</button>
+            <input type="number" id="pump_02_ml" name="pump 2 ml" min="0" max="500" value="0"> <label for="pump_02_ml">ml</label> <br>
+            <button type="submit" class="button-pump">Pump me</button>
         </form>
     </div>
     <div class="pumpDiv">
         <h2>Pump 3</h2>
         <form action="/get">
             <label for="pump_03_ml">Amount of water to pump</label> <br>
-            input3: <input type="number" id="pump_03_ml" name="pump 3 ml" min="0" max="100" value="0"> <label for="pump_03_ml">ml</label> <br>
-            <button type="submit">Pump me</button>
+            <input type="number" id="pump_03_ml" name="pump 3 ml" min="0" max="500" value="0"> <label for="pump_03_ml">ml</label> <br>
+            <button type="submit" class="button-pump">Pump me</button>
         </form>
     </div>
     <div class="pumpDiv">
         <h2>Pump 4</h2>
         <form action="/get">
             <label for="pump_04_ml">Amount of water to pump</label> <br>
-            input1: <input type="number" id="pump_04_ml" name="pump 4 ml" min="0" max="100" value="0"> <label for="pump_04_ml">ml</label> <br>
-            <button type="submit">Pump me</button>
+            <input type="number" id="pump_04_ml" name="pump 4 ml" min="0" max="500" value="0"> <label for="pump_04_ml">ml</label> <br>
+            <button type="submit" class="button-pump">Pump me</button>
         </form>
     </div>
 </body>
