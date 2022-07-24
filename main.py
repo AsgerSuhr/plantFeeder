@@ -36,7 +36,16 @@ def read_html(filename):
 
 def send_index(esp):
     html = read_html('website.html')
+    n = 2048
+    if len(html) >= n:
+        chunks = [html[i:i+n] for i in range(0, len(html), n)]
+        for i in chunks:
+            esp.client.send(i)
+            sleep(0.2)
+    else:
+        esp.client.send(html)
     esp.client.send(html)
+    esp.client.close()
 
 def send_page(esp, html_page):
     html = read_html(html_page)
@@ -50,7 +59,14 @@ def pump_water(request):
     html = html.replace('{nr}', pump_nr)
     html = html.replace('{delay}', str(int(t)+5))
     html = html.replace('{ip}', esp.ip)
-    esp.client.send(html)
+    n = 2048
+    if len(html) >= n:
+        chunks = [html[i:i+n] for i in range(0, len(html), n)]
+        for i in chunks:
+            esp.client.send(i)
+            sleep(0.2)
+    else:
+        esp.client.send(html)
     esp.client.close()
     pumps[pump_nr].value(0)
     sleep(t)
@@ -84,13 +100,8 @@ while True:
         request = esp.client.GETrequest()
         if request[1] == '/':
             send_index(esp)
-            esp.client.close()
 
         elif '/get?pump+' in request[1]:
             pump_water(request)
 
-        
-        elif 'GET /favicon.ico' in request[1]:
-            send_index(esp)
-            esp.client.close()
     pass
