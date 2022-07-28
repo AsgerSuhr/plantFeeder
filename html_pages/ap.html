@@ -1,0 +1,44 @@
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="refresh" content="{delay}; URL=http://{ip}/">
+    <style>
+        div {background-color:powderblue; max-width: 300px; margin:0 auto; border-radius:16px}
+        h1 {text-align: center;font-family: Arial, Helvetica, sans-serif;}
+        h2 {font-family: Arial, Helvetica, sans-serif;}
+        label {font-family: Arial, Helvetica, sans-serif; font-weight:bold;}
+        .pumpDiv {text-align: center;}
+        .button-pump {border-radius:8px; 
+                    background-color:rgb(100,200,100); 
+                    border-color:rgb(60,150,60); 
+                    box-shadow:none;
+                    border-width:2px;
+                    border-style:solid;
+                    color:white;
+                    padding: 5px 16px;
+                    font-size: 16px;
+                    font-weight:bold;
+                    font-family: Arial, Helvetica, sans-serif;
+                    margin:8px}
+        .button-pump:hover {background-color:rgb(60,150,60);border-color:rgb(60,150,60)}
+        .button-pump:active {transform: scale(0.95);}
+    </style>
+    <title>Plant Feeder</title>
+</head>
+    <body style="background-color:rgb(220,250,255)">
+        <h1>Please add network credentials</h1><br>
+        <div class="pumpDiv">
+            <h2>Pump 1</h2>
+            <form action="/getWiFi/" method="GET">
+                <label for="WiFi name">WiFi name</label> 
+                <input type="text" id="ssid" name="WiFi name"> <br>
+                <label for="Password">Password</label> 
+                <input type="text" id="password" name="Password"> <br>
+                <button type="submit" value="Submit" class="button-pump">save</button>
+            </form>
+        </div>        
+    </body>
+</html>
+
